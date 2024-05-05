@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Regex Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+        label, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            cursor: pointer;
+        }
+        p {
+            color: green;
+        }
+    </style>
+    <script>
+        function updateCount() {
+            const input = document.getElementById('string');
+            const countElement = document.getElementById('count');
+            countElement.textContent = 'Character count: ' + input.value.length;
+        }
+    </script>
+</head>
+<body>
+    <form method="POST">
+        <h1>Python-ReDoS</h1>
+        <label for="string">Enter Text:</label>
+        <input type="text" id="string" name="string" oninput="updateCount()">
+        <p id="count">Character count: 0</p>
+        <button type="submit">Submit</button>
+        {% if message %}
+        <p id="message" {% if message != '200 OK' %}style="color: red;"{% endif %}>Message: {{ message }}</p>
+        {% endif %}
+    </form>
+</body>
+</html>

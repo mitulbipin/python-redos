@@ -2,6 +2,8 @@ from flask import Flask, request, render_template, make_response
 import re
 import regex
 from multiprocessing import Process, Queue
+from email_validator import validate_email, EmailNotValidError
+import re2
 
 app = Flask(__name__)
 @app.route('/index', methods=['GET', 'POST'])
@@ -19,41 +21,58 @@ def home():
             return response
     return render_template('index.html', message=message)
     
-
-@app.route('/limit_backtrack', methods=['GET', 'POST'])
-def limit_backtrack():
+@app.route('/repair', methods=['GET', 'POST'])
+def repair():
     message = None
     if request.method == 'POST':
-        #pattern = regex.compile(r'(A(B|C+)+D){e<=1000}')  # limit backtracking to 1000 steps
-        pattern = regex.compile(r'A(B|C+)+D', regex.BESTMATCH, depth=100000000)
+        pattern = r'A((?:(?:(?!.).)|(?:(?:[BC])+)))D'
+        #pattern = r'(a-z0-9.+)+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
         string = request.form.get('string')
         if pattern and string:
-            match = pattern.fullmatch(string,partial=True)
+            match = re.findall(pattern, string)
             if match:
-                response = make_response(render_template('limit_backtrack.html', message='200 OK'), 200)
+                response = make_response(render_template('repair.html', message='200 OK'), 200)
             else:
-                response = make_response(render_template('limit_backtrack.html', message='400 Bad Request'), 400)
+                response = make_response(render_template('repair.html', message='400 Bad Request'), 400)
             return response
-    # if request.method == 'POST':
-    #     pattern = r'A(B|C++)+D'
-    #     #pattern = r'A(B(*COMMIT)|C+(*PRUNE))+D'  # limit backtracking to 1000 steps
-    #     string = request.form.get('string')
-    #     if pattern and string:
-    #         match = regex.match(pattern, string)
-    #         if match:
-    #             response = make_response(render_template('limit_backtrack.html', message='200 OK'), 200)
-    #         else:
-    #             response = make_response(render_template('limit_backtrack.html', message='400 Bad Request'), 400)
-    #         return response
-    return render_template('limit_backtrack.html', message=message)
+    return render_template('repair.html', message=message)
 
+@app.route('/diff_regex_engine', methods=['GET', 'POST'])
+def diff_regex_engine():
+    message = None
+    if request.method == 'POST':
+        pattern = r'A(B|C+)+D'
+        string = request.form.get('string')
+        try:
+            if pattern and string:
+                match = re2.match(pattern, string)
+                if match:
+                    response = make_response(render_template('diff_regex_engine.html', message='200 OK'), 200)
+                else:
+                    response = make_response(render_template('diff_regex_engine.html', message=re2.error), 400)
+        except re2.error:
+            response = make_response(render_template('diff_regex_engine.html', message='Error in regex pattern'), 500)
+
+        return response
+    return render_template('diff_regex_engine.html', message=message)
+
+@app.route('/alternate_logic', methods=['GET', 'POST'])
+def alternate_logic():
+    message = None
+    if request.method == 'POST':
+        string = request.form.get('string')
+        if string:
+            if validate_email(string):
+                response = make_response(render_template('alternate_logic.html', message='200 OK'), 200)
+            else:
+                response = make_response(render_template('alternate_logic.html', message='400 Bad Request'), 400)
+            return response
+    return render_template('alternate_logic.html', message=message)
+
+# fuction used for /timeout 
 def match_pattern(string, queue):
     match = re.findall(r'A(B|C+)+D', string)
     queue.put(match)
-
-def search(r,s):
-    SECRET = "this_is_secret"
-    return re.match(r,SECRET)
 
 @app.route('/timeout', methods=['GET', 'POST'])
 def timeout():
@@ -77,6 +96,10 @@ def timeout():
                     response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
             return response
     return render_template('timeout.html', message=message)
+
+def search(r,s):
+    SECRET = "this_is_secret"
+    return re.match(r,SECRET)
 
 @app.route('/regex_injection', methods=['GET', 'POST'])
 def regex_injection():

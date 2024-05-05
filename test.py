@@ -21,3 +21,26 @@ try:
         print("No match found")
 except regex.TimeoutError:
     print("Regex matching timed out")
+
+# @app.route('/regex_injection', methods=['GET', 'POST'])
+# def regex_injection():
+# message = None
+# if request.method == 'POST':
+#     string = request.form.get('string')
+#     if string:
+#         queue = Queue()
+#         p = Process(target=search, args=(string, queue))
+#         p.start()
+#         p.join(2)  # Wait for 1 second
+#         if p.is_alive():
+#             p.terminate()
+#             p.join()
+#             response = make_response(render_template('timeout.html', message='500 Internal Server Error'), 500)
+#         else:
+#             result = queue.get()
+#             if result:
+#                 response = make_response(render_template('timeout.html', message='200 OK'), 200)
+#             else:
+#                 response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
+#         return response
+# return render_template('timeout.html', message=message)
