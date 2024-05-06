@@ -10,6 +10,7 @@ app = Flask(__name__)
 def home():
     message = None
     if request.method == 'POST':
+        #pattern = r'^([a-zA-Z0-9._]+)+@gmail\.com$' # fixed - ((?:(?:[a-zA-Z0-9._])+))@gmail.com
         pattern = r'A(B|C+)+D'
         string = request.form.get('string')
         if pattern and string:
@@ -25,8 +26,8 @@ def home():
 def repair():
     message = None
     if request.method == 'POST':
-        pattern = r'A((?:(?:(?!.).)|(?:(?:[BC])+)))D'
-        #pattern = r'(a-z0-9.+)+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+        #pattern = r'A((?:(?:(?!.).)|(?:(?:[BC])+)))D'
+        pattern = r'^((?:(?:[a-zA-Z0-9._])+))@gmail.com$'
         string = request.form.get('string')
         if pattern and string:
             match = re.findall(pattern, string)
