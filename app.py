@@ -38,11 +38,39 @@ def repair():
             return response
     return render_template('repair.html', message=message)
 
+# fuction used for /timeout 
+def match_pattern(string, queue):
+    match = re.findall(r'^([a-zA-Z0-9._]+)+@gmail\.com$', string)
+    queue.put(match)
+
+@app.route('/timeout', methods=['GET', 'POST'])
+def timeout():
+    message = None
+    if request.method == 'POST':
+        string = request.form.get('string')
+        if string:
+            queue = Queue()
+            p = Process(target=match_pattern, args=(string, queue))
+            p.start()
+            p.join(1)  # Wait for 1 second
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                response = make_response(render_template('timeout.html', message='500 Internal Server Error'), 500)
+            else:
+                result = queue.get()
+                if result:
+                    response = make_response(render_template('timeout.html', message='200 OK'), 200)
+                else:
+                    response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
+            return response
+    return render_template('timeout.html', message=message)
+
 @app.route('/diff_regex_engine', methods=['GET', 'POST'])
 def diff_regex_engine():
     message = None
     if request.method == 'POST':
-        pattern = r'A(B|C+)+D'
+        pattern = r'^((?:(?:[a-zA-Z0-9._])+))@gmail.com$'
         string = request.form.get('string')
         try:
             if pattern and string:
@@ -70,33 +98,24 @@ def alternate_logic():
             return response
     return render_template('alternate_logic.html', message=message)
 
-# fuction used for /timeout 
-def match_pattern(string, queue):
-    match = re.findall(r'A(B|C+)+D', string)
-    queue.put(match)
-
-@app.route('/timeout', methods=['GET', 'POST'])
-def timeout():
+@app.route('/limit_input', methods=['GET', 'POST'])
+def limit_input():
     message = None
     if request.method == 'POST':
+        #pattern = r'^([a-zA-Z0-9._]+)+@gmail\.com$' # fixed - ((?:(?:[a-zA-Z0-9._])+))@gmail.com
+        pattern = r'A(B|C+)+D'
         string = request.form.get('string')
-        if string:
-            queue = Queue()
-            p = Process(target=match_pattern, args=(string, queue))
-            p.start()
-            p.join(1)  # Wait for 1 second
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                response = make_response(render_template('timeout.html', message='500 Internal Server Error'), 500)
+        if pattern and string:
+            if len(string) > 100: # Enter the value decided by the developers
+                response = make_response(render_template('limit_input.html', message='413 Request Entity Too Large'), 413)
             else:
-                result = queue.get()
-                if result:
-                    response = make_response(render_template('timeout.html', message='200 OK'), 200)
+                match = re.findall(pattern, string)
+                if match:
+                    response = make_response(render_template('limit_input.html', message='200 OK'), 200)
                 else:
-                    response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
+                    response = make_response(render_template('limit_input.html', message='400 Bad Request'), 400)
             return response
-    return render_template('timeout.html', message=message)
+    return render_template('limit_input.html', message=message)
 
 def search(r,s):
     SECRET = "this_is_secret"
