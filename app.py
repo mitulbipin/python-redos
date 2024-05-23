@@ -4,6 +4,7 @@ import regex
 from multiprocessing import Process, Queue
 from email_validator import validate_email, EmailNotValidError
 import re2
+from oauthlib import uri_validate
 
 app = Flask(__name__)
 @app.route('/index', methods=['GET', 'POST'])
@@ -116,6 +117,19 @@ def limit_input():
                     response = make_response(render_template('limit_input.html', message='400 Bad Request'), 400)
             return response
     return render_template('limit_input.html', message=message)
+
+@app.route('/uri_validation', methods=['GET', 'POST'])
+def uri_validation():
+    message = None
+    if request.method == 'POST':
+        uri = request.form.get('string')
+        if uri:
+            if uri_validate.is_uri(uri):
+                response = make_response(render_template('uri_validation.html', message='200 OK'), 200)
+            else:
+                response = make_response(render_template('uri_validation.html', message='400 Bad Request'), 400)
+            return response
+    return render_template('uri_validation.html', message=message)
 
 def search(r,s):
     SECRET = "this_is_secret"
