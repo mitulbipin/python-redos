@@ -1,12 +1,20 @@
-from flask import Flask, request, render_template, make_response
+from flask import Blueprint,Flask, request, render_template, make_response
 import re
-import regex
+#import regex
 from multiprocessing import Process, Queue
-from email_validator import validate_email, EmailNotValidError
+from email_validator import validate_email
 import re2
 from oauthlib import uri_validate
 
+from cve_2022_36087 import cve_2022_36087_blueprint
+from cve_2021_23437 import cve_2021_23437_blueprint
+from cve_2021_27291 import cve_2021_27291_blueprint
+
 app = Flask(__name__)
+app.register_blueprint(cve_2022_36087_blueprint)
+app.register_blueprint(cve_2021_23437_blueprint)
+app.register_blueprint(cve_2021_27291_blueprint)
+
 @app.route('/index', methods=['GET', 'POST'])
 def home():
     message = None
@@ -42,30 +50,31 @@ def repair():
 # fuction used for /timeout 
 def match_pattern(string, queue):
     match = re.findall(r'^([a-zA-Z0-9._]+)+@gmail\.com$', string)
+    print(match)
     queue.put(match)
 
-@app.route('/timeout', methods=['GET', 'POST'])
-def timeout():
-    message = None
-    if request.method == 'POST':
-        string = request.form.get('string')
-        if string:
-            queue = Queue()
-            p = Process(target=match_pattern, args=(string, queue))
-            p.start()
-            p.join(1)  # Wait for 1 second
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                response = make_response(render_template('timeout.html', message='500 Internal Server Error'), 500)
-            else:
-                result = queue.get()
-                if result:
-                    response = make_response(render_template('timeout.html', message='200 OK'), 200)
-                else:
-                    response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
-            return response
-    return render_template('timeout.html', message=message)
+# @app.route('/timeout', methods=['GET', 'POST'])
+# def timeout():
+#     message = None
+#     if request.method == 'POST':
+#         string = request.form.get('string')
+#         if string:
+#             queue = Queue()
+#             p = Process(target=match_pattern, args=(string, queue))
+#             p.start()
+#             p.join(1)  # Wait for 1 second
+#             if p.is_alive():
+#                 p.terminate()
+#                 p.join()
+#                 response = make_response(render_template('timeout.html', message='500 Internal Server Error'), 500)
+#             else:
+#                 result = queue.get()
+#                 if result:
+#                     response = make_response(render_template('timeout.html', message='200 OK'), 200)
+#                 else:
+#                     response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
+#             return response
+#     return render_template('timeout.html', message=message)
 
 @app.route('/diff_regex_engine', methods=['GET', 'POST'])
 def diff_regex_engine():
@@ -118,19 +127,8 @@ def limit_input():
             return response
     return render_template('limit_input.html', message=message)
 
-@app.route('/uri_validation', methods=['GET', 'POST'])
-def uri_validation():
-    message = None
-    if request.method == 'POST':
-        uri = request.form.get('string')
-        if uri:
-            if uri_validate.is_uri(uri):
-                response = make_response(render_template('uri_validation.html', message='200 OK'), 200)
-            else:
-                response = make_response(render_template('uri_validation.html', message='400 Bad Request'), 400)
-            return response
-    return render_template('uri_validation.html', message=message)
 
+# Experimental
 def search(r,s):
     SECRET = "this_is_secret"
     return re.match(r,SECRET)
@@ -155,6 +153,34 @@ def regex_injection():
                     response = make_response(render_template('timeout.html', message='200 OK'), 200)
                 else:
                     response = make_response(render_template('timeout.html', message='400 Bad Request'), 400)
+            return response
+    return render_template('timeout.html', message=message)
+
+def uri_validate_cve(string, queue):
+    match = uri_validate.is_uri(string,2)
+    print(match)
+    queue.put(match)
+
+@app.route('/timeout', methods=['GET', 'POST'])
+def timeout():
+    message = None
+    if request.method == 'POST':
+        string = request.form.get('string')
+        if string:
+            queue = Queue()
+            p = Process(target=uri_validate_cve, args=(string, queue))
+            p.start()
+            p.join(1)  # Wait for 1 second
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                response = make_response('500 Internal Server Error', 500)
+            else:
+                result = queue.get()
+                if result:
+                    response = make_response( '200 OK', 200)
+                else:
+                    response = make_response( '400 Bad Request', 400)
             return response
     return render_template('timeout.html', message=message)
 

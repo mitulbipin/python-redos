@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Highlighting</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pygments/2.7.4/styles/default.min.css">
+</head>
+<body>
+    <form method="post">
+        <label for="string">Enter Odin code to highlight:</label>
+        <textarea id="string" name="string" rows="10" cols="50"></textarea>
+        <button type="submit">Submit</button>
+    </form>
+    {% if highlighted_code %}
+        <div class="highlight">
+            {{ highlighted_code|safe }}
+        </div>
+    {% endif %}
+</body>
+</html>
