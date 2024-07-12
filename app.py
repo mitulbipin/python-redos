@@ -8,12 +8,12 @@ from oauthlib import uri_validate
 
 from cve_2022_36087 import cve_2022_36087_blueprint
 from cve_2021_23437 import cve_2021_23437_blueprint
-from cve_2021_27291 import cve_2021_27291_blueprint
+# from cve_2021_27291 import cve_2021_27291_blueprint
 
 app = Flask(__name__)
 app.register_blueprint(cve_2022_36087_blueprint)
 app.register_blueprint(cve_2021_23437_blueprint)
-app.register_blueprint(cve_2021_27291_blueprint)
+# app.register_blueprint(cve_2021_27291_blueprint)
 
 @app.route('/index', methods=['GET', 'POST'])
 def home():

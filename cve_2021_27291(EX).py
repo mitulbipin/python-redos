@@ -1,8 +1,10 @@
 ################### Pygments ####################
+################### EXCLUDED ####################
 # https://nvd.nist.gov/vuln/detail/CVE-2021-27291
 # https://pygments.org/
 # Type : Exponential
 # Fix Applied : Repaired the regular expression
+# Vulnerable string 
 
 from flask import Blueprint, request, render_template, make_response
 from multiprocessing import Process, Queue
@@ -13,6 +15,8 @@ from pygments.formatters import HtmlFormatter
 
 cve_2021_27291_blueprint = Blueprint('cve_2021_27291', __name__)
 
+
+###################################### Functional
 @cve_2021_27291_blueprint.route('/cve_2021_27291/index', methods=['GET','POST'])
 def index():
     message = None
