@@ -67,6 +67,29 @@ def timeout_cve():
             return response
     return render_template('timeout.html', message=message)
 
+@cve_2021_23437_blueprint.route('/cve_2021_23437/modified_timeout', methods=['GET', 'POST'])
+def modified_timeout_cve():
+    message = None
+    if request.method == 'POST':
+        string = request.form.get('string')
+        if string:
+            queue = Queue()
+            p = Process(target=match_pattern, args=(string, queue))
+            p.start()
+            p.join(0.5) 
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                response = make_response('500 Internal Server Error', 500)
+            else:
+                result = queue.get()
+                if result:
+                    response = make_response( '200 OK', 200)
+                else:
+                    response = make_response( '400 Bad Request', 400)
+            return response
+    return render_template('timeout.html', message=message)
+
 def custom_getrgb(color_name):
     color_dict = {
         "red": (255, 0, 0),

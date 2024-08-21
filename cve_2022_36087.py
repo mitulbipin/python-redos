@@ -46,6 +46,19 @@ def index():
             return response
     return render_template('uri_validation.html', message=message)
 
+@cve_2022_36087_blueprint.route('/cve_2022_36087/repair', methods=['GET','POST'])
+def repair():
+    message = None
+    if request.method == 'POST':
+        uri = request.form.get('string')
+        if uri:
+            if uri_validate.is_uri(uri,2):
+                response = make_response( '200 OK', 200)
+            else:
+                response = make_response( '400 Bad Request', 400)
+            return response
+    return render_template('uri_validation.html', message=message)
+
 @cve_2022_36087_blueprint.route('/cve_2022_36087/diff_regex_engine', methods=['GET','POST'])
 def diff_regex_engine():
     message = None
@@ -87,6 +100,29 @@ def timeout_cve():
             p = Process(target=match_pattern_uri, args=(string, queue))
             p.start()
             p.join(1)  # Wait for 1 second
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                response = make_response('500 Internal Server Error', 500)
+            else:
+                result = queue.get()
+                if result:
+                    response = make_response( '200 OK', 200)
+                else:
+                    response = make_response( '400 Bad Request', 400)
+            return response
+    return render_template('timeout.html', message=message)
+
+@cve_2022_36087_blueprint.route('/cve_2022_36087/modified_timeout', methods=['GET', 'POST'])
+def modified_timeout_cve():
+    message = None
+    if request.method == 'POST':
+        string = request.form.get('string')
+        if string:
+            queue = Queue()
+            p = Process(target=match_pattern_uri, args=(string, queue))
+            p.start()
+            p.join(0.5) 
             if p.is_alive():
                 p.terminate()
                 p.join()
